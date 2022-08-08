@@ -1,2 +1,2 @@
 # number-recognize-neural-network
-fisting ass
+ну тут типа чото написано окда
