@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -31,7 +30,6 @@ public class Perceptron {
 			this.weight = temp;
 			System.out.println("readed");
 		} else {
-			Random rand = new Random();
 			for (int i = 0; i < weight.length; i++) {
 				weight[i] = 0;
 			}
