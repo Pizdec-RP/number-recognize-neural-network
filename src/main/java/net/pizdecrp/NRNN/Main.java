@@ -1,3 +1,4 @@
+package net.pizdecrp.NRNN;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -9,19 +10,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -30,14 +30,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 public class Main {
 	public JFrame frame;
 	public Paint paint;
 	public Paint afterrender;
+	public JLabel l1;
 	Map<Integer, Perceptron> pct = new HashMap<>();
-	public static final int aftWidth = 12, aftHeight = 27, ampl = 3;
+	public static final int aftWidth = 40, aftHeight = 72, ampl = 1;
 	
 	public static double[] convertDoubles(List<Double> doubles) {
 	    double[] ret = new double[doubles.size()];
@@ -69,11 +71,7 @@ public class Main {
 					}
 				}
 			}
-		}//     {"pct1":[]}
-		/*paint.graphics.setColor(Color.RED);
-		paint.graphics.drawRect(minx, miny, maxx-minx, maxy-miny);
-		paint.graphics.setColor(Color.BLACK);
-		paint.repaint();*/
+		}
 		return img.getSubimage(minx, miny, maxx-minx, maxy-miny);
 	}
 	
@@ -114,17 +112,18 @@ public class Main {
 		pct.put(8, new Perceptron(aftWidth, aftHeight, 8));
 		pct.put(9, new Perceptron(aftWidth, aftHeight, 9));
 		
+		
 		this.frame = new JFrame("pipiska!");
-		this.frame.setSize(600 ,300);
+		this.frame.setSize(800 ,340);
 		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.frame.setLayout(null);
 		
-		paint= new Paint();
+		paint= new Paint(this);
 		paint.setBounds(50, 0, Paint.DEFAULT_SIZE.width, Paint.DEFAULT_SIZE.height);
 		this.frame.getContentPane().add(paint);
 		
-		final JLabel l1=new JLabel("0");
-		l1.setBounds(540, 30, 100, 25);
+	    l1=new JLabel("0", SwingConstants.CENTER);
+		l1.setBounds(600, 30, 100, 175);
 		this.frame.add(l1);
 		
 		JTextField num=new JTextField("int");
@@ -143,7 +142,7 @@ public class Main {
 			public void actionPerformed(ActionEvent arg0) {
 				learn(reDraw(paint.image), Integer.parseInt(num.getText()));
 				l2.setText("lnd as "+Integer.parseInt(num.getText()));
-				
+				diagram(paint.image);
 			}
 		});
 		this.frame.add(Learn2);
@@ -159,7 +158,7 @@ public class Main {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				double o = clasify(reDraw(paint.image));
-				l3.setText(""+o);
+				l3.setText("это цифра "+o);
 			}
 		});
 		this.frame.add(Test);
@@ -176,12 +175,16 @@ public class Main {
 		});
 		this.frame.add(Cl);
 		
-		afterrender = new Paint();
+		afterrender = new Paint(this);
 		afterrender.setBounds(500, 150, aftWidth*ampl, aftHeight*ampl);
 		this.frame.getContentPane().add(afterrender);
 		
+		
+		
 		frame.setVisible(true);
 	}
+	
+	
 	
 	
 	public static void main(String args[]) throws IOException{
@@ -198,6 +201,32 @@ public class Main {
 		pct.get(i).learning(bufferedImage, i);
 	}
 	
+	public void diagram(BufferedImage bufferedImage) {
+		Map<Integer,Double> arr = new HashMap<>();
+		for (Entry<Integer, Perceptron> single : pct.entrySet()) {
+			arr.put(single.getKey(),single.getValue().output(reDraw(bufferedImage)));
+		}
+		Comparator<Entry<Integer, Double>> valueComparator = 
+			    (e1, e2) -> e1.getValue().compareTo(e2.getValue());
+
+		Map<Integer, Double> sortedMap = 
+		    arr.entrySet().stream().
+		    sorted(valueComparator).
+		    collect(
+		    		Collectors.toMap(
+		    		Entry::getKey,
+		    		Entry::getValue,
+		            (e1, e2) -> e1,
+		            LinkedHashMap::new
+		    		)
+		    );
+		String s = "<html>";
+		for (Entry<Integer, Double> d : sortedMap.entrySet()) {
+			s += d.getKey()+" - " + String.format("%.8f",d.getValue()) + "<br/>";
+		}
+		s += "</html>";
+		l1.setText(s);
+	}
 	
 	public int clasify(BufferedImage bufferedImage) {
 		Entry<Integer, Perceptron> max = null;
@@ -234,11 +263,14 @@ public class Main {
 
 
 class Paint extends JPanel implements MouseListener, MouseMotionListener {
-	public static final Dimension DEFAULT_SIZE = new Dimension(300, 300);
+	public static final Dimension DEFAULT_SIZE = new Dimension(256, 256);
 	public BufferedImage image;
 	public Graphics graphics;
 	private Point startPoint;
-	public Paint() {
+	private Main mn;
+	
+	public Paint(Main mn) {
+		this.mn = mn;
 		setPreferredSize(DEFAULT_SIZE);
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -267,6 +299,7 @@ class Paint extends JPanel implements MouseListener, MouseMotionListener {
 		graphics.fillOval(p.x-10, p.y-10, 20, 20);
 		repaint();
 		startPoint = p;
+		mn.diagram(image);
 	}
 	
 	@Override public void mouseClicked(MouseEvent e) {}
@@ -280,6 +313,7 @@ class Paint extends JPanel implements MouseListener, MouseMotionListener {
 		//graphics.drawLine(startPoint.x, startPoint.y, p.x, p.y);
 		repaint();
 		startPoint = p;
+		mn.diagram(image);
 	}
 	
 	@Override public void mouseMoved(MouseEvent e) {}
