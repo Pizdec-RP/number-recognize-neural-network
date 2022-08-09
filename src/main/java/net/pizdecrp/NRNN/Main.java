@@ -157,7 +157,7 @@ public class Main {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				double o = clasify(reDraw(paint.image));
+				int o = clasify(reDraw(paint.image));
 				l3.setText("это цифра "+o);
 			}
 		});
