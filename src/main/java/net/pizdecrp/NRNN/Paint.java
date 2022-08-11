@@ -37,9 +37,8 @@ public class Paint extends JPanel implements MouseListener, MouseMotionListener 
 	public void clear(){
 		graphics.setColor(Color.WHITE);
 		graphics.fillRect(0, 0, DEFAULT_SIZE.width, DEFAULT_SIZE.height);
-		graphics.setColor(Color.BLACK);
+		if (mn.black) graphics.setColor(Color.BLACK);
 		repaint();
-		
 	}
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -49,7 +48,7 @@ public class Paint extends JPanel implements MouseListener, MouseMotionListener 
 	
 	@Override public void mousePressed(MouseEvent e) {
 		Point p = e.getPoint();
-		graphics.fillOval(p.x-10, p.y-10, 20, 20);
+		graphics.fillOval(p.x-(10 * mn.s1.getValue()/50), p.y-(10 * mn.s1.getValue()/50), (20 * mn.s1.getValue()/50), (20 * mn.s1.getValue()/50));
 		repaint();
 		mn.diagram(image);
 	}
@@ -61,7 +60,7 @@ public class Paint extends JPanel implements MouseListener, MouseMotionListener 
 	
 	@Override public void mouseDragged(MouseEvent e) {
 		Point p = e.getPoint();
-		graphics.fillOval(p.x-10, p.y-10, 20, 20);
+		graphics.fillOval(p.x-(10 * mn.s1.getValue()/50), p.y-(10 * mn.s1.getValue()/50), (20 * mn.s1.getValue()/50), (20 * mn.s1.getValue()/50));
 		//graphics.drawLine(startPoint.x, startPoint.y, p.x, p.y);
 		repaint();
 		mn.diagram(image);

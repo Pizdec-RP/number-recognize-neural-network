@@ -5,7 +5,9 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,9 +17,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -27,7 +32,9 @@ public class Main {
 	public Paint paint;
 	public Paint afterrender;
 	public JLabel l1;
-	Map<Integer, Perceptron> pct = new HashMap<>();
+	public JSlider s1;
+	public boolean black = true;
+	Map<Integer, Perceptron> layer1 = new HashMap<>();
 	public static final int aftWidth = 40, aftHeight = 72, ampl = 1;
 	
 	public static double[] convertDoubles(List<Double> doubles) {
@@ -61,7 +68,17 @@ public class Main {
 				}
 			}
 		}
-		return img.getSubimage(minx, miny, maxx-minx, maxy-miny);
+		if (maxx == 0 && maxy == 0
+				&&
+				miny == Paint.DEFAULT_SIZE.height && 
+				minx == Paint.DEFAULT_SIZE.width) 
+		{
+			return img;
+		} else if (maxy > Paint.DEFAULT_SIZE.height || maxx > Paint.DEFAULT_SIZE.width) {
+			return img;
+		} else {
+			return img.getSubimage(minx, miny, maxx-minx, maxy-miny);
+		}
 	}
 	
 	public BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) throws IOException {
@@ -90,19 +107,19 @@ public class Main {
 	
 	
 	public Main() throws IOException {	
-		pct.put(0, new Perceptron(aftWidth, aftHeight, 0));
-		pct.put(1, new Perceptron(aftWidth, aftHeight, 1));
-		pct.put(2, new Perceptron(aftWidth, aftHeight, 2));
-		pct.put(3, new Perceptron(aftWidth, aftHeight, 3));
-		pct.put(4, new Perceptron(aftWidth, aftHeight, 4));
-		pct.put(5, new Perceptron(aftWidth, aftHeight, 5));
-		pct.put(6, new Perceptron(aftWidth, aftHeight, 6));
-		pct.put(7, new Perceptron(aftWidth, aftHeight, 7));
-		pct.put(8, new Perceptron(aftWidth, aftHeight, 8));
-		pct.put(9, new Perceptron(aftWidth, aftHeight, 9));
+		layer1.put(0, new Perceptron(aftWidth*aftHeight, 0));
+		layer1.put(1, new Perceptron(aftWidth*aftHeight, 1));
+		layer1.put(2, new Perceptron(aftWidth*aftHeight, 2));
+		layer1.put(3, new Perceptron(aftWidth* aftHeight, 3));
+		layer1.put(4, new Perceptron(aftWidth* aftHeight, 4));
+		layer1.put(5, new Perceptron(aftWidth* aftHeight, 5));
+		layer1.put(6, new Perceptron(aftWidth* aftHeight, 6));
+		layer1.put(7, new Perceptron(aftWidth* aftHeight, 7));
+		layer1.put(8, new Perceptron(aftWidth* aftHeight, 8));
+		layer1.put(9, new Perceptron(aftWidth* aftHeight, 9));
 		
 		
-		this.frame = new JFrame("pipiska!");
+		this.frame = new JFrame("bruh!");
 		this.frame.setSize(800 ,340);
 		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.frame.setLayout(null);
@@ -112,7 +129,7 @@ public class Main {
 		this.frame.getContentPane().add(paint);
 		
 	    l1=new JLabel("0", SwingConstants.CENTER);
-		l1.setBounds(600, 30, 100, 175);
+		l1.setBounds(635, 30, 100, 175);
 		this.frame.add(l1);
 		
 		JTextField num=new JTextField("int");
@@ -147,10 +164,37 @@ public class Main {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				int o = clasify(reDraw(paint.image));
-				l3.setText("это цифра "+o);
+				if (o == -1) {
+					l3.setText("это какаято хуйня");
+				} else {
+					l3.setText("это цифра "+o);
+				}
 			}
 		});
 		this.frame.add(Test);
+		
+		JButton Cl2=new JButton("Paint: black");
+		Cl2.setBounds(410, 150, 100, 25);
+		Cl2.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (black) {
+					paint.graphics.setColor(Color.WHITE);
+					Cl2.setText("Paint: white");
+					black = false;
+				} else {
+					paint.graphics.setColor(Color.BLACK);
+					Cl2.setText("Paint: black");
+					black = true;
+				}
+			}
+		});
+		this.frame.add(Cl2);
+		
+		s1 = new JSlider();
+		s1.setBounds(400, 250, 100, 25);
+		frame.add(s1);
 		
 		JButton Cl=new JButton("Clear");
 		Cl.setBounds(410, 200, 75, 25);
@@ -165,10 +209,45 @@ public class Main {
 		this.frame.add(Cl);
 		
 		afterrender = new Paint(this);
-		afterrender.setBounds(500, 150, aftWidth*ampl, aftHeight*ampl);
+		afterrender.setBounds(520, 150, aftWidth*ampl, aftHeight*ampl);
 		this.frame.getContentPane().add(afterrender);
 		
-		
+		List<String> files = new ArrayList<>();
+	    for (final File fileEntry : new File("forLoad").listFiles()) {
+	        if (fileEntry.isDirectory()) {
+	            //huy
+	        } else {
+	            files.add(fileEntry.getName());
+	        }
+	    }
+	    
+	    String[] images = new String[files.size()];
+	    for (int i = 0; i < files.size();i++) {
+	    	images[i] = files.get(i);
+	    }
+	    JComboBox<String> load = new JComboBox<>(images);
+	    load.setBounds(570,200,130,20);
+	    frame.add(load);
+	    
+	    JButton loadimg = new JButton("load");
+	    loadimg.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				File file = new File("forLoad/"+load.getSelectedItem());
+				try {
+					BufferedImage readed = ImageIO.read(file);
+					paint.graphics.drawImage(readed, 0, 0, null);
+					paint.repaint();
+					diagram(paint.image);
+				} catch (IOException e) {
+					System.out.println("cant load image");
+					e.printStackTrace();
+				}
+			}
+	    });
+	    loadimg.setBounds(705,200,70,20);
+	    frame.add(loadimg);
 		
 		frame.setVisible(true);
 	}
@@ -176,25 +255,21 @@ public class Main {
 	
 	
 	
-	public static void main(String args[]) throws IOException{
+	public static void main(String args[]) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			new Main();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		new Main();
-	}
-	
-	
-	public void learn(BufferedImage bufferedImage, int i) {
-		pct.get(i).learning(bufferedImage, i);
 	}
 	
 	public void diagram(BufferedImage bufferedImage) {
-		Map<Integer,Double> arr = new HashMap<>();
-		for (Entry<Integer, Perceptron> single : pct.entrySet()) {
-			arr.put(single.getKey(),single.getValue().output(reDraw(bufferedImage)));
+		Map<Integer, Double> arr = new HashMap<>();
+		for (Entry<Integer, Perceptron> p : layer1.entrySet()) {
+			arr.put(p.getKey(),p.getValue().output(imageToArray(reDraw(bufferedImage), aftWidth, aftHeight)));
 		}
+		
 		Comparator<Entry<Integer, Double>> valueComparator = 
 			    (e1, e2) -> e1.getValue().compareTo(e2.getValue());
 
@@ -217,11 +292,15 @@ public class Main {
 		l1.setText(s);
 	}
 	
+	public void learn(BufferedImage bufferedImage, int i) {
+		layer1.get(i).learning(imageToArray(bufferedImage, aftWidth, aftHeight));
+	}
+	
 	public int clasify(BufferedImage bufferedImage) {
 		Entry<Integer, Perceptron> max = null;
 		double maxl = 0;
-		for (Entry<Integer, Perceptron> single : pct.entrySet()) {
-			double t = single.getValue().output(bufferedImage);
+		for (Entry<Integer, Perceptron> single : layer1.entrySet()) {
+			double t = single.getValue().output(imageToArray(bufferedImage, aftWidth, aftHeight));
 			if (max == null) {
 				max = single;
 				maxl = t;
@@ -231,6 +310,22 @@ public class Main {
 			}
 		}
 		return max.getKey();
+	}
+	
+	public double[] imageToArray(BufferedImage image, int w, int h) {
+		double[] temp = new double[w*h];
+		int k = 0;
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				if (image.getRGB(i, j) == Color.BLACK.getRGB()) {
+					temp[k] = 1;
+				} else {
+					temp[k] = 0;
+				}
+				k++;
+			}
+		}
+		return temp;
 	}
 	/*
 	{
