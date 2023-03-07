@@ -14,7 +14,60 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
 public class Perceptron {
-	double[] weight;
+	private double[] weights;
+	  private double bias;
+	  public int id;
+	  
+	  public Perceptron(int numInputs, int id) {
+		this.id=id;
+	    // Initialize weights and bias to random values
+	    weights = new double[numInputs];
+	    for (int i = 0; i < numInputs; i++) {
+	      weights[i] = Math.random();
+	    }
+	    bias = Math.random();
+	  }
+
+	  public double predict(double[] inputs) {
+	    // Calculate the linear combination of the inputs and weights
+	    double sum = bias;
+	    for (int i = 0; i < weights.length; i++) {
+	      sum += inputs[i] * weights[i];
+	    }
+
+	    return 1.0/(1.0+Math.exp(-sum/(1000)));
+	  }
+
+	  public void train(double[] inputs, double target) {
+	    // Make a prediction based on the inputs
+	    double prediction = predict(inputs);
+
+	    // Calculate the error
+	    double error = target - prediction;
+
+	    // Update the weights and bias based on the error
+	    bias += error;
+	    for (int i = 0; i < weights.length; i++) {
+	      weights[i] += error * inputs[i];
+	    }
+	  }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*double[] weight;
+	//double[] lastInput = null;
 	double alpha = 0.5;
 	double loop = 100;
 	int ct = 10;
@@ -26,11 +79,11 @@ public class Perceptron {
 		this.weight = new double[ct+1];
 		double[] temp;
 		Random rand=new Random();
+		
 		try {
 			temp = read();
 			if (temp.length > 0) {
 				this.weight = temp;
-				System.out.println("readed");
 			} else {
 				for (int i = 0; i < weight.length; i++) {
 					weight[i] = rand.nextDouble()-0.5;
@@ -91,9 +144,9 @@ public class Perceptron {
 	public double output(double[] neigh) {
 		double sum=weight[ct];
 		for (int i = 0; i < ct; i++) {
-			if (neigh[i] > 0)
-				sum+=weight[i];
+			sum+=weight[i] * neigh[i];
 		}
+		//lastInput = neigh;
 		return 1.0/(1.0+Math.exp(-sum/(1000)));
 	}
 	
@@ -103,13 +156,12 @@ public class Perceptron {
 			double o = output(neigh);
 			double d = alpha * o * (1 - o) * (y - o);
 			for (int i = 0; i < ct; i++) {
-				if (neigh[i] > 0) {
-					weight[i] = weight[i]+d;
-				}
+				weight[i] = weight[i]*neigh[i]+d;
 			}
 			weight[ct]=weight[ct]+d;
 		}
+		//lastInput = neigh;
 		write();
-	}
+	}*/
 
 }

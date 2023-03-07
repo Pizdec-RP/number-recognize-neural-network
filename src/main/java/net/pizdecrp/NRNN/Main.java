@@ -106,7 +106,8 @@ public class Main {
 	
 	
 	
-	public Main() throws IOException {	
+	public Main() throws IOException {
+		System.out.println(1);
 		layer1.put(0, new Perceptron(aftWidth*aftHeight, 0));
 		layer1.put(1, new Perceptron(aftWidth*aftHeight, 1));
 		layer1.put(2, new Perceptron(aftWidth*aftHeight, 2));
@@ -267,7 +268,7 @@ public class Main {
 	public void diagram(BufferedImage bufferedImage) {
 		Map<Integer, Double> arr = new HashMap<>();
 		for (Entry<Integer, Perceptron> p : layer1.entrySet()) {
-			arr.put(p.getKey(),p.getValue().output(imageToArray(reDraw(bufferedImage), aftWidth, aftHeight)));
+			arr.put(p.getKey(),p.getValue().predict(imageToArray(reDraw(bufferedImage), aftWidth, aftHeight)));
 		}
 		
 		Comparator<Entry<Integer, Double>> valueComparator = 
@@ -293,14 +294,14 @@ public class Main {
 	}
 	
 	public void learn(BufferedImage bufferedImage, int i) {
-		layer1.get(i).learning(imageToArray(bufferedImage, aftWidth, aftHeight));
+		layer1.get(i).train(imageToArray(bufferedImage, aftWidth, aftHeight), 0.9F);
 	}
 	
 	public int clasify(BufferedImage bufferedImage) {
 		Entry<Integer, Perceptron> max = null;
 		double maxl = 0;
 		for (Entry<Integer, Perceptron> single : layer1.entrySet()) {
-			double t = single.getValue().output(imageToArray(bufferedImage, aftWidth, aftHeight));
+			double t = single.getValue().predict(imageToArray(bufferedImage, aftWidth, aftHeight));
 			if (max == null) {
 				max = single;
 				maxl = t;
@@ -318,9 +319,9 @@ public class Main {
 		for (int i = 0; i < w; i++) {
 			for (int j = 0; j < h; j++) {
 				if (image.getRGB(i, j) == Color.BLACK.getRGB()) {
-					temp[k] = 1;
+					temp[k] = 1.0D;
 				} else {
-					temp[k] = 0;
+					temp[k] = 0.0D;
 				}
 				k++;
 			}
